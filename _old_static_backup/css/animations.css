@@ -1,0 +1,154 @@
+/* ============================================================
+   PESISIR-EDU | animations.css — All Keyframe Animations
+   ============================================================ */
+
+/* === Loading === */
+@keyframes ripple-out {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes ellipsis {
+  0% { content: ''; }
+  33% { content: '.'; }
+  66% { content: '..'; }
+  100% { content: '...'; }
+}
+
+/* === Ticker === */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* === Pulse effects === */
+@keyframes pulse-cyan {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,240,255,0.3); }
+  50% { box-shadow: 0 0 20px rgba(0,240,255,0.6), 0 0 40px rgba(0,240,255,0.2); }
+}
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 8px rgba(16,185,129,0.3); }
+  50% { box-shadow: 0 0 20px rgba(16,185,129,0.6), 0 0 40px rgba(16,185,129,0.2); }
+}
+@keyframes pulse-coral {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,107,74,0.3); }
+  50% { box-shadow: 0 0 20px rgba(255,107,74,0.6), 0 0 40px rgba(255,107,74,0.2); }
+}
+
+/* === Marker animations === */
+@keyframes marker-pulse {
+  0% { transform: translate(-50%,-50%) scale(0.5); opacity: 0.8; }
+  100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+}
+@keyframes marker-enter {
+  0% { transform: scale(0) translateY(20px); opacity: 0; }
+  80% { transform: scale(1.1) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* === Panel / Card animations === */
+@keyframes slide-in-left {
+  0% { transform: translateX(-30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-right {
+  0% { transform: translateX(30px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes scale-in {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* === Glow / Shimmer === */
+@keyframes glow-cyan {
+  0%, 100% { text-shadow: 0 0 8px rgba(0,240,255,0.3); }
+  50% { text-shadow: 0 0 20px rgba(0,240,255,0.8); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(0,240,255,0.15); }
+  50% { border-color: rgba(0,240,255,0.4); }
+}
+
+/* === Wave animation (header/map overlay) === */
+@keyframes wave-move {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* === Dash animation for route polylines === */
+/* Applied via Leaflet SVG path directly */
+@keyframes dash-flow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* === Applied animation classes === */
+.animate-slide-left { animation: slide-in-left 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-right { animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up { animation: slide-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade { animation: fade-in 0.3s ease forwards; }
+.animate-scale { animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+.result-card { animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.result-card:nth-child(1) { animation-delay: 0.05s; }
+.result-card:nth-child(2) { animation-delay: 0.1s; }
+.result-card:nth-child(3) { animation-delay: 0.15s; }
+.result-card:nth-child(4) { animation-delay: 0.2s; }
+.result-card:nth-child(5) { animation-delay: 0.25s; }
+
+.itinerary-card { animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Score bar animated fill */
+.score-bar-fill { animation: grow-bar 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes grow-bar {
+  from { width: 0 !important; }
+}
+.rank-score-fill { animation: grow-bar 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Glowing border on top result */
+.top-result { animation: border-glow 2.5s ease-in-out infinite; }
+
+/* Loading bar shimmer */
+.loading-bar::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+.loading-bar { position: relative; }
+
+/* Analyze button pulse when active */
+.analyze-btn.pulse { animation: pulse-cyan 1.5s ease-in-out infinite; }
+
+/* Modal open animation */
+.modal-overlay:not(.hidden) .modal-container { animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Marker enter animation applied via JS class */
+.marker-enter { animation: marker-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Risk indicator pulse */
+.risk-badge.high { animation: pulse-coral 2s ease-in-out infinite; }
+
+/* Custom scrollbar track */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.18); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.35); }

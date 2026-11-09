@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PESISIR-EDU | WebGIS & SPK Rekomendasi Lokasi Pembelajaran Pesisir Kota Bengkulu</title>
+  <meta name="description" content="Sistem Pendukung Keputusan berbasis WebGIS untuk rekomendasi lokasi pembelajaran luar ruang di kawasan pesisir Kota Bengkulu menggunakan metode SAW dan Haversine Distance." />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+  <!-- ===== LOADING SCREEN ===== -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <div class="logo-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="url(#grad1)" stroke-width="2" fill="none"/>
+            <path d="M8 38 Q16 28 24 32 Q32 36 40 26 Q48 16 56 20" stroke="#00F0FF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="6" fill="rgba(0,240,255,0.2)" stroke="#00F0FF" stroke-width="1.5"/>
+            <path d="M32 26 L32 38 M26 32 L38 32" stroke="#00F0FF" stroke-width="1.5" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="64" y2="64">
+                <stop offset="0%" stop-color="#00F0FF"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="loading-waves">
+          <div class="wave w1"></div>
+          <div class="wave w2"></div>
+          <div class="wave w3"></div>
+        </div>
+      </div>
+      <h1 class="loading-title">PESISIR<span>-EDU</span></h1>
+      <p class="loading-subtitle">WebGIS & Sistem Pendukung Keputusan</p>
+      <p class="loading-sub2">Rekomendasi Lokasi Pembelajaran Luar Ruang &bull; Kawasan Pesisir Kota Bengkulu</p>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <p class="loading-status" id="loading-status">Menginisialisasi sistem...</p>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP CONTAINER ===== -->
+  <div id="app" class="app-container hidden">
+
+    <!-- ===== MAP CANVAS (Full Screen Background) ===== -->
+    <div id="map" class="map-canvas"></div>
+
+    <!-- ===== TOP HEADER BAR ===== -->
+    <header class="header-bar glass-panel">
+      <div class="header-left">
+        <div class="app-logo">
+          <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="url(#hgrad)" stroke-width="2" fill="none"/>
+            <path d="M8 38 Q16 28 24 32 Q32 36 40 26 Q48 16 56 20" stroke="#00F0FF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="5" fill="rgba(0,240,255,0.15)" stroke="#00F0FF" stroke-width="1.5"/>
+            <defs>
+              <linearGradient id="hgrad" x1="0" y1="0" x2="64" y2="64">
+                <stop offset="0%" stop-color="#00F0FF"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">PESISIR<span class="logo-accent">-EDU</span></span>
+        </div>
+        <div class="header-meta">
+          <span class="meta-badge">WebGIS SPK</span>
+          <span class="meta-badge alt">SAW + Haversine</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="weather-ticker" id="weather-ticker">
+          <span class="ticker-label">KONDISI PESISIR</span>
+          <div class="ticker-items" id="ticker-items"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="view-toggle">
+          <button class="toggle-btn active" id="btn-spatial" onclick="setViewMode('spatial')" title="Spatial Map Mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+            <span>Spasial</span>
+          </button>
+          <button class="toggle-btn" id="btn-analytics" onclick="setViewMode('analytics')" title="Split Analytics Mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>Analitik</span>
+          </button>
+        </div>
+        <div class="header-time">
+          <span id="live-time" class="mono-text"></span>
+          <span class="location-badge">Kota Bengkulu, BKL</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== LEFT CONTROL PANEL ===== -->
+    <aside class="control-panel glass-panel" id="control-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Konfigurasi SPK
+        </h2>
+        <button class="panel-collapse-btn" id="panel-collapse-btn" onclick="toggleControlPanel()" title="Collapse Panel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="panel-body" id="panel-body">
+        <!-- === Titik Keberangkatan === -->
+        <div class="control-section">
+          <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            Titik Keberangkatan
+          </div>
+          <select class="custom-select" id="departure-select" onchange="onDepartureChange()">
+            <option value="">&#8212; Pilih Sekolah / Titik Awal &#8212;</option>
+            <option value="-3.7956,102.2554">SMAN 1 Bengkulu (Pusat Kota)</option>
+            <option value="-3.8059,102.2652">SMAN 2 Bengkulu (Tengah Kota)</option>
+            <option value="-3.8240,102.2730">SMAN 4 Bengkulu (Selatan)</option>
+            <option value="-3.7778,102.2489">SMAN 5 Bengkulu (Utara)</option>
+            <option value="-3.7923,102.2601">SMPN 1 Bengkulu</option>
+            <option value="-3.8012,102.2678">SMPN 3 Bengkulu</option>
+            <option value="custom">&#128205; Klik titik di peta...</option>
+          </select>
+          <div id="custom-coord-display" class="coord-display hidden">
+            <span class="mono-text" id="custom-coord-text">-</span>
+            <button class="clear-coord-btn" onclick="clearCustomCoord()">&#10005;</button>
+          </div>
+          <div class="click-map-hint" id="click-map-hint" style="display:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Klik di peta untuk memilih titik keberangkatan
+          </div>
+        </div>
+
+        <!-- === Mata Pelajaran === -->
+        <div class="control-section">
+          <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Mata Pelajaran
+            <span class="count-badge" id="subject-count">0</span>
+          </div>
+          <div class="subject-chips" id="subject-chips"></div>
+          <div class="chip-actions">
+            <button class="chip-action-btn" onclick="selectAllSubjects()">Pilih Semua</button>
+            <button class="chip-action-btn" onclick="clearAllSubjects()">Hapus Semua</button>
+          </div>
+        </div>
+
+        <!-- === Radius === -->
+        <div class="control-section">
+          <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Radius Kedekatan Lokasi
+          </div>
+          <div class="slider-container">
+            <input type="range" class="custom-slider" id="radius-slider" min="500" max="5000" step="100" value="2000" oninput="onRadiusChange(this.value)" />
+            <div class="slider-labels">
+              <span>500m</span>
+              <span class="slider-value" id="radius-value">2.0 km</span>
+              <span>5km</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- === Bobot SAW === -->
+        <div class="control-section">
+          <div class="section-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+            Bobot Kriteria SAW
+            <button class="info-btn" onclick="showSAWInfo()" title="Info">?</button>
+          </div>
+          <div class="saw-weights" id="saw-weights">
+            <div class="weight-item">
+              <div class="weight-header">
+                <span class="weight-label">C1: Relevansi Mapel</span>
+                <span class="weight-value mono-text" id="w1-val">35%</span>
+              </div>
+              <input type="range" class="custom-slider c1" id="w1" min="10" max="60" step="5" value="35" oninput="onWeightChange()" />
+            </div>
+            <div class="weight-item">
+              <div class="weight-header">
+                <span class="weight-label">C2: Jarak Tempuh</span>
+                <span class="weight-value mono-text" id="w2-val">25%</span>
+              </div>
+              <input type="range" class="custom-slider c2" id="w2" min="10" max="60" step="5" value="25" oninput="onWeightChange()" />
+            </div>
+            <div class="weight-item">
+              <div class="weight-header">
+                <span class="weight-label">C3: Daya Tarik Edukasi</span>
+                <span class="weight-value mono-text" id="w3-val">25%</span>
+              </div>
+              <input type="range" class="custom-slider c3" id="w3" min="10" max="60" step="5" value="25" oninput="onWeightChange()" />
+            </div>
+            <div class="weight-item">
+              <div class="weight-header">
+                <span class="weight-label">C4: Keamanan Pesisir</span>
+                <span class="weight-value mono-text" id="w4-val">15%</span>
+              </div>
+              <input type="range" class="custom-slider c4" id="w4" min="5" max="40" step="5" value="15" oninput="onWeightChange()" />
+            </div>
+          </div>
+          <div class="weight-total-bar">
+            <div class="weight-total-label">Total:</div>
+            <div class="weight-segments" id="weight-segments"></div>
+            <div class="weight-total-value" id="weight-total">100%</div>
+          </div>
+        </div>
+
+        <!-- === Analyze Button === -->
+        <div class="control-section">
+          <button class="analyze-btn" id="analyze-btn" onclick="runSPKAnalysis()">
+            <span class="btn-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <span class="btn-text">Jalankan Analisis SPK</span>
+            <span class="btn-glow"></span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== RIGHT RESULTS PANEL ===== -->
+    <aside class="results-panel glass-panel" id="results-panel">
+      <div class="results-header">
+        <h2 class="panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Hasil Rekomendasi
+        </h2>
+        <div class="results-meta" id="results-meta"></div>
+      </div>
+      <div class="results-body" id="results-body">
+        <div class="results-placeholder">
+          <div class="placeholder-icon">
+            <svg width="52" height="52" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="28" stroke="rgba(0,240,255,0.2)" stroke-width="2" stroke-dasharray="6 4"/>
+              <path d="M20 38 Q26 28 32 32 Q38 36 44 28" stroke="rgba(0,240,255,0.4)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="32" r="4" fill="rgba(0,240,255,0.1)" stroke="rgba(0,240,255,0.4)" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <p class="placeholder-title">Belum Ada Analisis</p>
+          <p class="placeholder-desc">Pilih mata pelajaran dan titik keberangkatan, lalu klik <strong>Jalankan Analisis SPK</strong>.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== ANALYTICS SPLIT VIEW PANEL ===== -->
+    <div class="analytics-panel glass-panel hidden" id="analytics-panel">
+      <div class="analytics-header">
+        <h3 class="panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2"><path d="M3 3v18h18M18 17l-5-5-4 4-3-3"/></svg>
+          Mode Analitik &mdash; Simulasi Bobot &amp; Matriks SAW
+        </h3>
+        <button class="close-btn" onclick="setViewMode('spatial')">&#10005;</button>
+      </div>
+      <div class="analytics-body" id="analytics-body">
+        <div class="analytics-placeholder">Jalankan analisis terlebih dahulu untuk melihat simulasi bobot dan matriks SAW.</div>
+      </div>
+    </div>
+
+    <!-- ===== WEATHER WIDGET ===== -->
+    <div class="weather-widget glass-panel" id="weather-widget">
+      <div class="weather-header">
+        <span class="weather-title">Kondisi Pesisir</span>
+        <span class="weather-badge" id="overall-risk">&#8212;</span>
+      </div>
+      <div class="weather-grid" id="weather-grid"></div>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- ===== SAW DETAIL MODAL ===== -->
+  <div class="modal-overlay hidden" id="saw-modal-overlay" onclick="closeSAWModal(event)">
+    <div class="modal-container" id="saw-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" stroke-width="2"><path d="M3 3v18h18M18 17l-5-5-4 4-3-3"/></svg>
+          Detail Perhitungan Metode SAW
+        </h3>
+        <button class="modal-close" onclick="closeSAWModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="saw-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== LOCATION DETAIL MODAL ===== -->
+  <div class="modal-overlay hidden" id="loc-modal-overlay" onclick="closeLocModal(event)">
+    <div class="modal-container loc-modal" id="loc-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title" id="loc-modal-title">Detail Lokasi</h3>
+        <button class="modal-close" onclick="closeLocModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="loc-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== SAW INFO MODAL ===== -->
+  <div class="modal-overlay hidden" id="info-modal-overlay" onclick="this.classList.add('hidden')">
+    <div class="modal-container info-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Kriteria Metode SAW</h3>
+        <button class="modal-close" onclick="document.getElementById('info-modal-overlay').classList.add('hidden')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="info-grid">
+          <div class="info-card c1">
+            <div class="info-card-icon">C1</div>
+            <div class="info-card-content">
+              <strong>Relevansi Mata Pelajaran</strong>
+              <p>Mengukur seberapa relevan lokasi terhadap mata pelajaran yang dipilih. Skor 1-5 berdasarkan kesesuaian kurikulum.</p>
+              <span class="badge-benefit">BENEFIT</span>
+            </div>
+          </div>
+          <div class="info-card c2">
+            <div class="info-card-icon">C2</div>
+            <div class="info-card-content">
+              <strong>Jarak Tempuh</strong>
+              <p>Jarak dari titik keberangkatan ke lokasi menggunakan formula Haversine. Semakin dekat semakin baik.</p>
+              <span class="badge-cost">COST</span>
+            </div>
+          </div>
+          <div class="info-card c3">
+            <div class="info-card-icon">C3</div>
+            <div class="info-card-content">
+              <strong>Daya Tarik Edukasi &amp; Fasilitas</strong>
+              <p>Nilai edukasi, ketersediaan fasilitas pendukung (toilet, tempat berteduh, akses kendaraan).</p>
+              <span class="badge-benefit">BENEFIT</span>
+            </div>
+          </div>
+          <div class="info-card c4">
+            <div class="info-card-icon">C4</div>
+            <div class="info-card-content">
+              <strong>Aksesibilitas &amp; Keamanan Cuaca</strong>
+              <p>Kemudahan akses dan kondisi keamanan pesisir (tinggi gelombang, cuaca, risiko abrasi).</p>
+              <span class="badge-benefit">BENEFIT</span>
+            </div>
+          </div>
+        </div>
+        <div class="formula-box">
+          <p class="formula-title">Formula SAW:</p>
+          <p class="formula mono-text">V(i) = &Sigma; (w(j) &times; r(ij))</p>
+          <p class="formula-sub">Normalisasi BENEFIT: r(ij) = x(ij) / max(x(ij))</p>
+          <p class="formula-sub">Normalisasi COST: r(ij) = min(x(ij)) / x(ij)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/haversine.js"></script>
+  <script src="js/saw.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

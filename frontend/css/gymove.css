@@ -1,0 +1,39 @@
+/* PESISIR-EDU | Gymove Clean Soft-UI Custom Styling */
+[x-cloak] { display: none !important; }
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #F4F7F9;
+}
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Leaflet Custom Styling */
+.leaflet-popup-content-wrapper {
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(19, 41, 133, 0.15) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    padding: 6px;
+}
+.leaflet-popup-tip {
+    box-shadow: 0 10px 30px rgba(19, 41, 133, 0.15) !important;
+}
+
+/* Marker Pulse Animation */
+@keyframes marker-pulse {
+    0% { transform: scale(0.95); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.9; }
+}
+.pulse-marker {
+    animation: marker-pulse 2s infinite ease-in-out;
+}
